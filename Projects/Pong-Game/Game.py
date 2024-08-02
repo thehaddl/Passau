@@ -5,6 +5,8 @@ import pygame
 from Paddle import Paddle
 from Ball import Ball
 from Settings import *
+import time
+from Powerups import Powerups
 
 pygame.init()
 
@@ -18,6 +20,14 @@ class Game:
         self.ball = Ball(window,WIN_WIDTH/2,WIN_HEIGHT/2,BLUE)
         self.left_score = 0
         self.right_score = 0
+
+        self.left_hits = 0
+
+        if POWERUPS_ENABLED:
+            self.powerups = Powerups()
+            self.powerup_active = False
+            self.powerup_visable = False
+            self.last_powerup_time = millis()
 
     def draw(self):
         # This is our central draw method. If we want to display something on the screen, we have to add it in here.
@@ -33,6 +43,14 @@ class Game:
 
         # Draw the dividing lines in the middle
         self.draw_divider()
+
+        if POWERUPS_ENABLED and self.powerup_visable:
+            if millis() - self.last_powerup_time > POWERUP_DISPLAY_TIME:
+                self.hide_powerup()
+            else:
+                self.powerups.draw(self.window)
+
+
 
         # TODO Paddle (1) Draw the paddles
         self.left_paddle.draw()
@@ -82,14 +100,19 @@ class Game:
     # region TODO (6) Collision detection
     # TODO Ball (6) Collision detection
     def handle_collision(self):
+        if (POWERUPS_ENABLED and self.powerup_visable and self.ball_hits_powerup()):
+            self.handle_powerup_collision()
+
+
         if self.ball_hits_ceiling_or_floor():
             # TODO: Reverse y direction if we hit the ceiling or bottom of the screen.
-            self.ball.y_vel *= -1
+            self.ball.y_vel *= (-1 * random.uniform(0.8, 1.2))
             pass
 
         if self.ball_hits_paddle(self.left_paddle):
             # TODO: handle collision with left paddle
             self.handle_paddle_collision(self.left_paddle)
+            self.left_hits += 1
             pass
         elif self.ball_hits_paddle(self.right_paddle):
             # TODO: handle collision with right paddle
@@ -100,10 +123,19 @@ class Game:
         return self.ball.y + BALL_RADIUS > WIN_HEIGHT or self.ball.y - BALL_RADIUS < 0
         # TODO: condition must be True when ball hits the ceiling or bottom, False otherwise
 
+    def ball_hits_powerup(self):
+        return ((self.powerups.x - BALL_RADIUS <= self.ball.x <= self.powerups.x + POWERUP_SIZE + BALL_RADIUS) and
+                (self.powerups.y - BALL_RADIUS <= self.ball.y <= self.powerups.y + POWERUP_SIZE + BALL_RADIUS))
+
     def ball_hits_paddle(self, paddle):
         # TODO: condition must be True when ball hits the paddle, False otherwise
         return ((paddle.y <= self.ball.y <= paddle.y + PADDLE_HEIGHT) and
                 (paddle.x - BALL_RADIUS <= self.ball.x <= paddle.x + PADDLE_WIDTH + BALL_RADIUS))
+
+    def handle_powerup_collision(self):
+        self.powerups.activate(self)
+        self.powerup_active = True
+        self.hide_powerup()
 
     def handle_paddle_collision(self, paddle):
         # Reverse direction
@@ -168,18 +200,32 @@ class Game:
         elif network_output == 1:
             if is_left:
                 # What to do?
-                pass
+                self.left_paddle.move(True)
             else:
-                pass
                 # What to do?
+                self.right_paddle.move(True)
 
         # 2 means we move downwards
         else:
             if is_left:
                 # What to do?
-                pass
+                self.left_paddle.move(False)
             else:
-                pass
                 # What to do?
+                self.right_paddle.move(False)
 
     # endregion
+    def hide_powerup(self):
+        self.powerup_visable = False
+        self.last_powerup_time = millis()
+        pass
+
+    def spawn_new_powerup(self):
+        self.powerups_active = False
+        self.powerup_visable = True
+        self.last_powerup_time = millis()
+
+        pass
+
+def millis():
+    return round(time.time() * 1000)

@@ -1,4 +1,4 @@
-from Game import Game
+from Game import Game, millis
 from Settings import *
 
 if __name__ == "__main__":
@@ -37,6 +37,15 @@ if __name__ == "__main__":
         if game.ball.x> WIN_WIDTH:
             game.left_score +=1
             game.ball.reset()
+
+        if POWERUPS_ENABLED:
+            if game.powerup_active:
+                if millis() - game.last_powerup_time > POWERUP_DURATION:
+                    game.powerups.deactivate(game)
+                    game.powerup_active = False
+                    game.last_powerup_time = millis()
+            elif millis() - game.last_powerup_time > POWERUP_DURATION:
+                game.spawn_new_powerup()
 
         # TODO Winning condition (8) Check if one player has won the game
         if game.check_winning_condition():

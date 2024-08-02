@@ -53,4 +53,13 @@ class Ball:
     # Used for powerups
     def change_speed(self, delta):
         # Change the speed of the ball in x and y direction by the specified delta
+        if self.x_vel < 0:
+            self.x_vel -= delta
+        else:
+            self.x_vel += delta
+
+        if self.y_vel < 0:
+            self.y_vel -= delta
+        else:
+            self.y_vel += delta
         pass

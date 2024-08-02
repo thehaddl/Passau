@@ -56,10 +56,12 @@ class FastBall:
 
     def activate(self, game):
         # TODO: make game.ball faster
+        game.ball.change_speedup(self.ball_speedup)
         pass
 
     def deactivate(self, game):
         # TODO: restore the original speed of game.ball
+        game.ball.change_speedup(-self.ball_speedup)
         pass
 
 
